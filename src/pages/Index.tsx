@@ -2,10 +2,23 @@
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import { ArrowRight, Users, Calendar, MessageSquare, ShoppingBag } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
 
 const Index = () => {
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
 
   const features = [
@@ -31,18 +44,33 @@ const Index = () => {
     },
   ];
 
-  const handleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-
-    if (error) {
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast({
+          title: "Success!",
+          description: "Account created successfully.",
+        });
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+      }
+      setShowAuthDialog(false);
+      setEmail("");
+      setPassword("");
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error signing in",
+        title: "Error",
         description: error.message,
       });
     }
@@ -64,9 +92,9 @@ const Index = () => {
           <div className="flex justify-center space-x-4 animate-fade-in">
             <Button 
               className="bg-campus-600 hover:bg-campus-700 text-white px-8"
-              onClick={handleSignIn}
+              onClick={() => setShowAuthDialog(true)}
             >
-              Get Started with Google
+              Get Started
             </Button>
             <Button variant="outline" className="border-campus-600 text-campus-600">
               Learn More
@@ -100,13 +128,58 @@ const Index = () => {
           <h2 className="text-3xl font-bold mb-8">Ready to join your campus community?</h2>
           <Button 
             className="bg-campus-600 hover:bg-campus-700"
-            onClick={handleSignIn}
+            onClick={() => setShowAuthDialog(true)}
           >
             <span>Join Now</span>
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </section>
+
+      {/* Auth Dialog */}
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isSignUp ? "Create Account" : "Sign In"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col space-y-2">
+              <Button type="submit">
+                {isSignUp ? "Sign Up" : "Sign In"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsSignUp(!isSignUp)}
+              >
+                {isSignUp
+                  ? "Already have an account? Sign In"
+                  : "Don't have an account? Sign Up"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

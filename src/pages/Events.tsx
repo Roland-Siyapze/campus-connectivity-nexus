@@ -6,6 +6,7 @@ import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Calendar, Plus } from "lucide-react";
 import { format } from "date-fns";
+import CreateEventDialog from "@/components/events/CreateEventDialog";
 
 const Events = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -72,6 +73,11 @@ const Events = () => {
             ))}
           </div>
         )}
+
+        <CreateEventDialog
+          open={showCreateModal}
+          onOpenChange={setShowCreateModal}
+        />
       </main>
     </div>
   );
