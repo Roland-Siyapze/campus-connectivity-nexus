@@ -2,8 +2,12 @@
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import { ArrowRight, Users, Calendar, MessageSquare, ShoppingBag } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
+  const { toast } = useToast();
+
   const features = [
     {
       icon: Users,
@@ -27,6 +31,23 @@ const Index = () => {
     },
   ];
 
+  const handleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error signing in",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-campus-50 to-white">
       <Header />
@@ -41,8 +62,11 @@ const Index = () => {
             Connect, collaborate, and thrive in your campus community with CampusConnect.
           </p>
           <div className="flex justify-center space-x-4 animate-fade-in">
-            <Button className="bg-campus-600 hover:bg-campus-700 text-white px-8">
-              Get Started
+            <Button 
+              className="bg-campus-600 hover:bg-campus-700 text-white px-8"
+              onClick={handleSignIn}
+            >
+              Get Started with Google
             </Button>
             <Button variant="outline" className="border-campus-600 text-campus-600">
               Learn More
@@ -74,7 +98,10 @@ const Index = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-campus-50">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8">Ready to join your campus community?</h2>
-          <Button className="bg-campus-600 hover:bg-campus-700">
+          <Button 
+            className="bg-campus-600 hover:bg-campus-700"
+            onClick={handleSignIn}
+          >
             <span>Join Now</span>
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

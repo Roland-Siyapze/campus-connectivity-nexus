@@ -1,11 +1,55 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User, Calendar, MessageSquare, ShoppingBag } from "lucide-react";
+import { Menu, X, User, Calendar, MessageSquare, ShoppingBag, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error signing out",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error signing in",
+        description: error.message,
+      });
+    }
+  };
 
   const navigation = [
     { name: "Events", href: "/events", icon: Calendar },
@@ -28,7 +72,7 @@ const Header = () => {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
-            {navigation.map((item) => (
+            {user && navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
@@ -38,9 +82,24 @@ const Header = () => {
                 <span>{item.name}</span>
               </Link>
             ))}
-            <Button variant="default" className="bg-campus-600 hover:bg-campus-700">
-              Sign In
-            </Button>
+            {user ? (
+              <Button 
+                variant="default" 
+                className="bg-campus-600 hover:bg-campus-700"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-5 w-5 mr-2" />
+                Sign Out
+              </Button>
+            ) : (
+              <Button 
+                variant="default" 
+                className="bg-campus-600 hover:bg-campus-700"
+                onClick={handleSignIn}
+              >
+                Sign In
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -64,7 +123,7 @@ const Header = () => {
         {isOpen && (
           <div className="md:hidden animate-fade-in">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {navigation.map((item) => (
+              {user && navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
@@ -76,9 +135,22 @@ const Header = () => {
                 </Link>
               ))}
               <div className="pt-4">
-                <Button className="w-full bg-campus-600 hover:bg-campus-700">
-                  Sign In
-                </Button>
+                {user ? (
+                  <Button 
+                    className="w-full bg-campus-600 hover:bg-campus-700"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full bg-campus-600 hover:bg-campus-700"
+                    onClick={handleSignIn}
+                  >
+                    Sign In
+                  </Button>
+                )}
               </div>
             </div>
           </div>
