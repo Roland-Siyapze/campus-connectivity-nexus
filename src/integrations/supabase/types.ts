@@ -99,7 +99,7 @@ export type Database = {
           is_exchangeable: boolean | null
           name: string
           price: number
-          seller_id: string
+          seller_id: string | null
           status: string
         }
         Insert: {
@@ -112,7 +112,7 @@ export type Database = {
           is_exchangeable?: boolean | null
           name: string
           price: number
-          seller_id: string
+          seller_id?: string | null
           status?: string
         }
         Update: {
@@ -125,7 +125,7 @@ export type Database = {
           is_exchangeable?: boolean | null
           name?: string
           price?: number
-          seller_id?: string
+          seller_id?: string | null
           status?: string
         }
         Relationships: []
