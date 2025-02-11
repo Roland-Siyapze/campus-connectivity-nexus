@@ -7,6 +7,14 @@ import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import CartView from "@/components/cart/CartView";
 
 const Shop = () => {
   const { data: products, isLoading: isLoadingProducts } = useQuery({
@@ -51,10 +59,22 @@ const Shop = () => {
       <main className="container mx-auto px-4 pt-24">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Campus Store</h1>
-          <Button variant="outline">
-            <ShoppingBag className="h-4 w-4 mr-2" />
-            Cart ({isLoadingCart ? "..." : getTotalCartItems()})
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline">
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Cart ({isLoadingCart ? "..." : getTotalCartItems()})
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-lg">
+              <SheetHeader>
+                <SheetTitle>Shopping Cart</SheetTitle>
+              </SheetHeader>
+              <div className="mt-8">
+                <CartView />
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
         {isLoadingProducts ? (
