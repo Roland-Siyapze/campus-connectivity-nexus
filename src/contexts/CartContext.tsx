@@ -69,7 +69,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         `);
 
       if (error) throw error;
-      setCartItems(data as CartItem[]);
+
+      // Transform the data to match the CartItem interface
+      const transformedData: CartItem[] = data.map(item => ({
+        id: item.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        product: {
+          name: item.products.name,
+          price: item.products.price,
+          image_url: item.products.image_url
+        }
+      }));
+
+      setCartItems(transformedData);
     } catch (error) {
       console.error('Error fetching cart items:', error);
       toast({
