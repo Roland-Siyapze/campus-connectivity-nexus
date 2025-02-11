@@ -50,6 +50,86 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          product_id: string
+          seller_id: string
+          status: string
+          transaction_type: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+          seller_id: string
+          status?: string
+          transaction_type?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          seller_id?: string
+          status?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category: string
+          condition: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_exchangeable: boolean | null
+          name: string
+          price: number
+          seller_id: string
+          status: string
+        }
+        Insert: {
+          category: string
+          condition: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_exchangeable?: boolean | null
+          name: string
+          price: number
+          seller_id: string
+          status?: string
+        }
+        Update: {
+          category?: string
+          condition?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_exchangeable?: boolean | null
+          name?: string
+          price?: number
+          seller_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
