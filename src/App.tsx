@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Chat from "./pages/Chat";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
+import Events from "./pages/Events";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/events" element={<Events />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/profile" element={<Profile />} />
