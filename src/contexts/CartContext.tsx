@@ -70,7 +70,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      // Transform the data to match the CartItem interface
       const transformedData: CartItem[] = data.map(item => ({
         id: item.id,
         product_id: item.product_id,
@@ -175,3 +174,4 @@ export function useCart() {
   }
   return context;
 }
+
