@@ -1,9 +1,10 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Plus } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -15,8 +16,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import CartView from "@/components/cart/CartView";
+import CreateProductDialog from "@/components/shop/CreateProductDialog";
 
 const Shop = () => {
+  const [showCreateProduct, setShowCreateProduct] = useState(false);
   const { data: products, isLoading: isLoadingProducts } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
@@ -59,22 +62,28 @@ const Shop = () => {
       <main className="container mx-auto px-4 pt-24">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Campus Store</h1>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline">
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Cart ({isLoadingCart ? "..." : getTotalCartItems()})
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-lg">
-              <SheetHeader>
-                <SheetTitle>Shopping Cart</SheetTitle>
-              </SheetHeader>
-              <div className="mt-8">
-                <CartView />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <div className="flex gap-4">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline">
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Cart ({isLoadingCart ? "..." : getTotalCartItems()})
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-lg">
+                <SheetHeader>
+                  <SheetTitle>Shopping Cart</SheetTitle>
+                </SheetHeader>
+                <div className="mt-8">
+                  <CartView />
+                </div>
+              </SheetContent>
+            </Sheet>
+            <Button onClick={() => setShowCreateProduct(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              List Item
+            </Button>
+          </div>
         </div>
 
         {isLoadingProducts ? (
@@ -105,6 +114,11 @@ const Shop = () => {
           </div>
         )}
       </main>
+
+      <CreateProductDialog
+        open={showCreateProduct}
+        onOpenChange={setShowCreateProduct}
+      />
     </div>
   );
 };

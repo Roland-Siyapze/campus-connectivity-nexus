@@ -41,34 +41,78 @@ export type Database = {
           },
         ]
       }
+      event_rsvps: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
+          category: string
           created_at: string
           created_by: string
           description: string | null
           end_time: string
           id: string
+          is_private: boolean | null
           location: string | null
+          max_attendees: number | null
+          reminder_before: unknown | null
           start_time: string
           title: string
         }
         Insert: {
+          category?: string
           created_at?: string
           created_by: string
           description?: string | null
           end_time: string
           id?: string
+          is_private?: boolean | null
           location?: string | null
+          max_attendees?: number | null
+          reminder_before?: unknown | null
           start_time: string
           title: string
         }
         Update: {
+          category?: string
           created_at?: string
           created_by?: string
           description?: string | null
           end_time?: string
           id?: string
+          is_private?: boolean | null
           location?: string | null
+          max_attendees?: number | null
+          reminder_before?: unknown | null
           start_time?: string
           title?: string
         }

@@ -1,82 +1,104 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/lib/supabase";
-import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
-import { Calendar, Plus } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, MapPin, Users, Bell } from "lucide-react";
+import Header from "@/components/layout/Header";
 import CreateEventDialog from "@/components/events/CreateEventDialog";
+import EventCard from "@/components/events/EventCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 const Events = () => {
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const { data: events, isLoading } = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", selectedDate],
     queryFn: async () => {
+      const startOfDay = new Date(selectedDate!);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(selectedDate!);
+      endOfDay.setHours(23, 59, 59, 999);
+
       const { data, error } = await supabase
         .from("events")
-        .select("*, profiles(username)")
+        .select(`
+          *,
+          event_rsvps (
+            status,
+            user_id
+          )
+        `)
+        .gte("start_time", startOfDay.toISOString())
+        .lte("start_time", endOfDay.toISOString())
         .order("start_time", { ascending: true });
 
       if (error) throw error;
       return data;
     },
+    enabled: !!selectedDate,
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-campus-50 to-white">
+    <div className="min-h-screen bg-background">
       <Header />
-      
-      <main className="container mx-auto px-4 pt-24">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Campus Events</h1>
-          <Button onClick={() => setShowCreateModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Event
-          </Button>
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Calendar Section */}
+          <div className="w-full md:w-1/3">
+            <div className="bg-white rounded-lg shadow p-4">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md"
+              />
+            </div>
+            <Button
+              className="w-full mt-4"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Create Event
+            </Button>
+          </div>
+
+          {/* Events List Section */}
+          <div className="w-full md:w-2/3">
+            <h2 className="text-2xl font-bold mb-4">
+              Events for {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Today"}
+            </h2>
+            <div className="space-y-4">
+              {isLoading ? (
+                // Loading skeletons
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-lg shadow p-4">
+                    <Skeleton className="h-6 w-2/3 mb-2" />
+                    <Skeleton className="h-4 w-1/3 mb-4" />
+                    <div className="flex gap-4">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                ))
+              ) : events?.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No events scheduled for this day
+                </div>
+              ) : (
+                events?.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
-        {isLoading ? (
-          <div>Loading events...</div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {events?.map((event) => (
-              <div key={event.id} className="glass-card p-6 rounded-xl">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{event.title}</h3>
-                    <p className="text-gray-600 mb-4">{event.description}</p>
-                  </div>
-                  <Calendar className="h-5 w-5 text-campus-600" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-500">
-                    <strong>Location:</strong> {event.location}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <strong>Date:</strong>{" "}
-                    {format(new Date(event.start_time), "PPP")}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <strong>Time:</strong>{" "}
-                    {format(new Date(event.start_time), "p")} -{" "}
-                    {format(new Date(event.end_time), "p")}
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <Button variant="outline" className="w-full">
-                    RSVP
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
         <CreateEventDialog
-          open={showCreateModal}
-          onOpenChange={setShowCreateModal}
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
         />
       </main>
     </div>
