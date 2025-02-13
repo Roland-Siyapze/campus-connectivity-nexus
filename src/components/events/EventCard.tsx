@@ -8,10 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface EventCardProps {
   event: {
@@ -31,6 +31,7 @@ interface EventCardProps {
 const EventCard = ({ event }: EventCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -44,6 +45,30 @@ const EventCard = ({ event }: EventCardProps) => {
     (rsvp) => rsvp.user_id === user.id
   );
 
+  // Set up real-time subscription for RSVPs
+  useEffect(() => {
+    const channel = supabase
+      .channel(`event_rsvps:${event.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_rsvps',
+          filter: `event_id=eq.${event.id}`,
+        },
+        () => {
+          // Invalidate and refetch events query to update the UI
+          queryClient.invalidateQueries({ queryKey: ["events"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [event.id, queryClient]);
+
   const handleRSVP = async () => {
     if (!user) {
       toast({
@@ -55,22 +80,52 @@ const EventCard = ({ event }: EventCardProps) => {
     }
 
     try {
-      const { error } = await supabase.from("event_rsvps").insert({
-        event_id: event.id,
-        user_id: user.id,
-        status: "going",
-      });
+      if (hasRSVPd) {
+        // Remove RSVP
+        const { error } = await supabase
+          .from("event_rsvps")
+          .delete()
+          .eq("event_id", event.id)
+          .eq("user_id", user.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Success!",
-        description: "You've successfully RSVP'd to this event",
-      });
+        toast({
+          title: "Success!",
+          description: "Your RSVP has been cancelled",
+        });
+      } else {
+        // Add RSVP
+        if (event.max_attendees && event.event_rsvps.length >= event.max_attendees) {
+          toast({
+            title: "Event is full",
+            description: "Sorry, this event has reached its maximum capacity",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { error } = await supabase.from("event_rsvps").insert({
+          event_id: event.id,
+          user_id: user.id,
+          status: "going",
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Success!",
+          description: "You've successfully RSVP'd to this event",
+        });
+      }
+
+      // Invalidate and refetch events query to update the UI
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     } catch (error) {
+      console.error("RSVP error:", error);
       toast({
         title: "Error",
-        description: "Failed to RSVP to the event",
+        description: "Failed to update RSVP status",
         variant: "destructive",
       });
     }
@@ -104,9 +159,8 @@ const EventCard = ({ event }: EventCardProps) => {
           <Button
             variant={hasRSVPd ? "secondary" : "default"}
             onClick={handleRSVP}
-            disabled={hasRSVPd}
           >
-            {hasRSVPd ? "Going" : "RSVP"}
+            {hasRSVPd ? "Cancel RSVP" : "RSVP"}
           </Button>
         </div>
         <Button
@@ -161,3 +215,4 @@ const EventCard = ({ event }: EventCardProps) => {
 };
 
 export default EventCard;
+
