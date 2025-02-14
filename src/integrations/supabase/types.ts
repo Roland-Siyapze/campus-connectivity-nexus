@@ -126,6 +126,27 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          id: string
+          text: string
+          timestamp: string
+          username: string
+        }
+        Insert: {
+          id?: string
+          text: string
+          timestamp?: string
+          username: string
+        }
+        Update: {
+          id?: string
+          text?: string
+          timestamp?: string
+          username?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           buyer_id: string
