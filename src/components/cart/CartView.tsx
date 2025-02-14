@@ -29,9 +29,9 @@ const CartView = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <ScrollArea className="flex-1 -mx-6">
-        <div className="px-6 space-y-4">
+    <div className="flex flex-col h-full">
+      <ScrollArea className="flex-grow pr-4 -mr-4">
+        <div className="space-y-4">
           {cartItems.map((item) => (
             <div
               key={item.id}
@@ -66,7 +66,7 @@ const CartView = () => {
         </div>
       </ScrollArea>
 
-      <div className="mt-6 p-4 bg-white rounded-lg shadow sticky bottom-0">
+      <div className="mt-6 p-4 bg-white rounded-lg shadow">
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold">Total:</span>
           <span className="text-xl font-bold">

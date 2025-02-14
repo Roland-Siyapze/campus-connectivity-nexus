@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
@@ -75,9 +74,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         product_id: item.product_id,
         quantity: item.quantity,
         product: {
-          name: item.products.name,
-          price: item.products.price,
-          image_url: item.products.image_url
+          name: item.products?.name,
+          price: item.products?.price,
+          image_url: item.products?.image_url
         }
       }));
 
@@ -174,4 +173,3 @@ export function useCart() {
   }
   return context;
 }
-
