@@ -12,6 +12,8 @@ import Chat from "./pages/Chat";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
 import Events from "./pages/Events";
+import Documents from "./pages/Documents";
+import DocumentEditor from "./components/documents/DocumentEditor";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +39,8 @@ const App: React.FC = () => {
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/documents" element={<Documents />} />
+                <Route path="/documents/:id" element={<DocumentEditor />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
