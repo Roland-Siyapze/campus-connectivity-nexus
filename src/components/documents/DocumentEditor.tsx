@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -110,12 +109,16 @@ const DocumentEditor = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      setTitle(data.title);
-      setContent(data.content || "");
-      setHasChanges(false);
-    },
+    enabled: !!id
   });
+
+  useEffect(() => {
+    if (document) {
+      setTitle(document.title);
+      setContent(document.content || "");
+      setHasChanges(false);
+    }
+  }, [document]);
 
   const updateDocument = useMutation({
     mutationFn: async () => {

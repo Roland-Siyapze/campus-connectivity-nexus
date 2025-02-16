@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User, Calendar, MessageSquare, ShoppingBag, LogOut } from "lucide-react";
+import { Menu, X, User, Calendar, MessageSquare, ShoppingBag, LogOut, Files } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
@@ -80,6 +80,7 @@ const Header = () => {
 
   const navigation = [
     { name: "Events", href: "/events", icon: Calendar },
+    { name: "Documents", href: "/documents", icon: Files },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Shop", href: "/shop", icon: ShoppingBag },
     { name: "Profile", href: "/profile", icon: User },

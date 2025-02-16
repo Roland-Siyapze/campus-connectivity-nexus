@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +25,7 @@ const Documents = () => {
   const { data: documents, refetch } = useQuery({
     queryKey: ["documents"],
     queryFn: async () => {
-      const user = (await supabase.auth.getUser()).data.user;
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
@@ -41,7 +40,8 @@ const Documents = () => {
 
   const handleCreateDocument = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = (await supabase.auth.getUser()).data.user;
+    
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
         title: "Authentication required",
@@ -51,31 +51,37 @@ const Documents = () => {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("documents")
-      .insert([
-        {
-          title: newDocTitle,
-          owner_id: user.id,
-          content: "",
-        },
-      ])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("documents")
+        .insert([
+          {
+            title: newDocTitle || "Untitled Document",
+            owner_id: user.id,
+            content: "",
+          },
+        ])
+        .select()
+        .single();
 
-    if (error) {
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Document created successfully",
+      });
+      
+      setCreateDialogOpen(false);
+      setNewDocTitle("");
+      await refetch();
+      navigate(`/documents/${data.id}`);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to create document",
+        description: error.message || "Failed to create document",
         variant: "destructive",
       });
-      return;
     }
-
-    setCreateDialogOpen(false);
-    setNewDocTitle("");
-    refetch();
-    navigate(`/documents/${data.id}`);
   };
 
   const handleDeleteDocument = async (id: string) => {
