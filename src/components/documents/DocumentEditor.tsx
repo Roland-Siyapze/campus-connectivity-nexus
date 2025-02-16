@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Save } from "lucide-react";
@@ -8,6 +8,16 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import Cursor from "./Cursor";
+
+// Random color generation for cursors
+const generateColor = () => {
+  const colors = [
+    "#FF5733", "#33FF57", "#3357FF", "#FF33F5",
+    "#33FFF5", "#F5FF33", "#FF3333", "#33FF33"
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
 
 const DocumentEditor = () => {
   const { id } = useParams();
@@ -16,6 +26,76 @@ const DocumentEditor = () => {
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
   const [hasChanges, setHasChanges] = React.useState(false);
+  const [cursors, setCursors] = React.useState<{ [key: string]: { x: number; y: number; label: string; color: string } }>({});
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const cursorColor = React.useRef(generateColor());
+  const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUser(user.email || user.id);
+      }
+    };
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    if (!id || !currentUser) return;
+
+    const channel = supabase.channel('document_cursors')
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const newCursors: typeof cursors = {};
+        
+        Object.keys(state).forEach(clientId => {
+          const presences = state[clientId] as any[];
+          presences.forEach(presence => {
+            if (presence.user !== currentUser) {
+              newCursors[presence.user] = {
+                x: presence.cursor.x,
+                y: presence.cursor.y,
+                label: presence.user,
+                color: presence.color
+              };
+            }
+          });
+        });
+        
+        setCursors(newCursors);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user: currentUser,
+            cursor: { x: 0, y: 0 },
+            color: cursorColor.current
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, currentUser]);
+
+  const updateCursorPosition = async (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    if (!currentUser || !id) return;
+
+    const rect = editorRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const channel = supabase.channel('document_cursors');
+    await channel.track({
+      user: currentUser,
+      cursor: { x, y },
+      color: cursorColor.current
+    });
+  };
 
   const { data: document } = useQuery({
     queryKey: ["document", id],
@@ -108,13 +188,24 @@ const DocumentEditor = () => {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 relative">
         <Textarea
+          ref={editorRef}
           value={content}
           onChange={handleContentChange}
+          onMouseMove={updateCursorPosition}
           className="min-h-[60vh] resize-none"
           placeholder="Start writing..."
         />
+        {Object.entries(cursors).map(([userId, cursor]) => (
+          <Cursor
+            key={userId}
+            x={cursor.x}
+            y={cursor.y}
+            label={cursor.label}
+            color={cursor.color}
+          />
+        ))}
       </main>
     </div>
   );
