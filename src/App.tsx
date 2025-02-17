@@ -14,6 +14,7 @@ import Profile from "./pages/Profile";
 import Events from "./pages/Events";
 import Documents from "./pages/Documents";
 import DocumentEditor from "./components/documents/DocumentEditor";
+import KanbanBoard from "./pages/KanbanBoard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ const App: React.FC = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/documents" element={<Documents />} />
                 <Route path="/documents/:id" element={<DocumentEditor />} />
+                <Route path="/boards" element={<KanbanBoard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
