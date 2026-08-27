@@ -1,69 +1,145 @@
-# Welcome to your Lovable project
+# Campus Connectivity Nexus
 
-## Project info
+A campus community web app — Chat, Events, Documents, Shop and Kanban — built with Vite + React + TypeScript and Supabase for backend services. Designed as a modular frontend demonstrating a multi-page campus platform with components, shopping/cart support, document editing, real-time-ish chat interfaces, and a kanban board.
 
-**URL**: https://lovable.dev/projects/fa40b9e7-ecb5-454c-93f0-a8ede7469e93
+Table of contents
+- [Features](#features)
+- [Stack](#stack)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Scripts](#scripts)
+- [Development notes](#development-notes)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
 
-## How can I edit this code?
+## Features
+- Multi-page SPA: Home, Events, Chat, Shop, Profile, Documents, Kanban
+- Shopping cart context and components
+- Document list + editor
+- Kanban board page
+- Client-side data fetching/management via @tanstack/react-query
+- UI primitives using Radix / shadcn-derived components and Tailwind
+- Supabase integration scaffold (config in `supabase/`)
+- Notifications with Sonner / Toaster
 
-There are several ways of editing your application.
+## Stack
+- Language: TypeScript (React)
+- Runtime/build: Vite
+- Main libraries:
+  - React 18, react-router-dom
+  - @tanstack/react-query (data fetching/caching)
+  - Supabase JS (backend / auth / storage)
+  - Tailwind CSS + tailwind-merge
+  - Radix UI components + shadcn-style UI primitives
+  - Sonner (toasts)
+  - Zod (validation)
 
-**Use Lovable**
+## Project structure
+Annotated top-level view of the important folders and files:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/fa40b9e7-ecb5-454c-93f0-a8ede7469e93) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+public/                 Static assets (favicon, images)
+src/
+  App.tsx               App entry: routing, providers (QueryClient, CartProvider, TooltipProvider)
+  main.tsx              React entrypoint
+  index.css             global styles (Tailwind)
+  pages/                Page-level components (Index, Chat, Events, Shop, Profile, Documents, KanbanBoard, NotFound)
+  components/           Reusable UI and feature components
+    cart/               cart components
+    documents/          DocumentEditor and document components
+    events/             event-related components
+    kanban/             kanban components
+    layout/             shared layout components
+    shop/               product/shop components
+    ui/                 local UI primitives (Toast, Tooltip, etc.)
+  contexts/             React contexts (CartContext, etc.)
+  lib/                  small utilities (API wrappers, helpers)
+  hooks/                custom hooks
+  integrations/         backend/integration helpers (supabase wrappers etc.)
+supabase/                local supabase project config (config.toml)
+package.json
+vite.config.ts
+tailwind.config.ts
+tsconfig.json
 ```
 
-**Edit a file directly in GitHub**
+How it fits together:
+- `main.tsx` mounts the app and loads global styles.
+- `App.tsx` wires up providers (React Query client, CartContext, TooltipProvider) and the router.
+- Pages under `src/pages/` render feature views and use components from `src/components/*`.
+- Data fetching and persistence are handled through Supabase wrappers and React Query for caching/fetching.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Getting started
+Prerequisites
+- Node.js 18+ recommended
+- npm (or yarn/pnpm)
+- (Optional) Supabase project for backend services
 
-**Use GitHub Codespaces**
+Quickstart
+```bash
+# clone
+git clone <YOUR_REPO_URL>
+cd campus-connectivity-nexus
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# install
+npm install
 
-## What technologies are used for this project?
+# run dev server
+npm run dev
+# open http://localhost:5173 (or the port Vite shows)
+```
 
-This project is built with .
+## Environment variables
+Create a `.env.local` (or `.env`) file at the project root with values required by the app. The project expects the Supabase client environment variables (names below are conventional; confirm usage in your Supabase wrapper files):
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+VITE_SUPABASE_URL=https://your-supabase-url.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+# any other VITE_ prefixed variables used by your code
+```
 
-## How can I deploy this project?
+Important: Vite only exposes env variables prefixed with `VITE_` to the client bundle.
 
-Simply open [Lovable](https://lovable.dev/projects/fa40b9e7-ecb5-454c-93f0-a8ede7469e93) and click on Share -> Publish.
+Supabase
+- The repository includes `supabase/config.toml` as a starting point. To use Supabase features locally, create a Supabase project, obtain the URL and anon key, and set them in your .env.
 
-## I want to use a custom domain - is that possible?
+## Scripts
+- npm run dev — start the Vite dev server
+- npm run build — produce a production build
+- npm run build:dev — build with development mode
+- npm run preview — locally preview the production build
+- npm run lint — run ESLint checks
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Development notes & tips
+- Code organization follows pages -> components -> contexts pattern. Add new top-level features as new page files and corresponding components.
+- Use React Query for async data fetching and caching; check where `QueryClient` is configured in `src/App.tsx`.
+- UI primitives live under `src/components/ui/` — extend there for consistent styling.
+- Keep environment secrets out of the repo; use project-level env configured in your hosting provider.
+
+## Deployment
+This project builds to static assets (Vite). You can deploy to:
+- Vercel — recommended for Vite apps (configure env vars in the project settings)
+- Netlify — add env vars and set the build command to `npm run build`, publish directory `dist`
+- Any static host serving the `dist/` output.
+
+When deploying, ensure your Supabase URL and ANON key are set in the host environment.
+
+## Contributing
+- Open an issue to discuss major changes or feature requests.
+- Create PRs against `main` (or the main branch your repo uses).
+- Run `npm run lint` and ensure TypeScript build passes before requesting review.
+- Add small, focused commits with clear messages.
+
+## Troubleshooting
+- Blank page / runtime errors: confirm `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set and valid.
+- Missing CSS/Styling: ensure you imported `index.css` and Tailwind is configured (see `tailwind.config.ts`).
+- React Query network errors: check network tab and Supabase project keys.
+
+## Acknowledgements
+Built with: Vite, React, Tailwind CSS, Radix UI, shadcn-style components, TanStack Query, Sonner, Supabase.
+
+## License
+Add a LICENSE file to choose a licence (e.g., MIT). If you want, I can add an MIT or other license file next.
